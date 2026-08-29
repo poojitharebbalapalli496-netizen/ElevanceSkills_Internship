@@ -1,0 +1,8 @@
+streamlit
+spacy
+scikit-learn
+transformers
+torch
+matplotlib
+sentence-transformers
+kagglehub
