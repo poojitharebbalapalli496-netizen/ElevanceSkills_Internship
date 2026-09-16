@@ -5,10 +5,12 @@ from data_loader import load_medquad
 
 
 class MedicalRetriever:
-    def __init__(self):
+    def __init__(self, confidence_threshold=0.20):
         self.data = load_medquad()
 
-        self.questions = [item["question"] for item in self.data]
+        self.questions = [
+            item["question"] for item in self.data
+        ]
 
         self.vectorizer = TfidfVectorizer(
             stop_words="english"
@@ -17,6 +19,8 @@ class MedicalRetriever:
         self.question_vectors = self.vectorizer.fit_transform(
             self.questions
         )
+
+        self.confidence_threshold = confidence_threshold
 
     def search(self, query, top_k=3):
         query_vector = self.vectorizer.transform([query])
@@ -31,11 +35,17 @@ class MedicalRetriever:
         results = []
 
         for index in best_indices:
+            score = float(similarities[index])
+
             results.append({
                 "question": self.data[index]["question"],
                 "answer": self.data[index]["answer"],
-                "score": float(similarities[index])
+                "score": score
             })
+
+        # Reject the result if the best match is not sufficiently relevant
+        if results and results[0]["score"] < self.confidence_threshold:
+            return []
 
         return results
 
@@ -47,10 +57,14 @@ if __name__ == "__main__":
 
     results = retriever.search(query)
 
-    print("\nTop matching results:\n")
+    if not results:
+        print("\nNo sufficiently relevant medical answer was found.")
 
-    for result in results:
-        print("Question:", result["question"])
-        print("Similarity:", round(result["score"], 3))
-        print("Answer:", result["answer"][:500])
-        print("-" * 60)
+    else:
+        print("\nTop matching results:\n")
+
+        for result in results:
+            print("Question:", result["question"])
+            print("Similarity:", round(result["score"], 3))
+            print("Answer:", result["answer"][:500])
+            print("-" * 60)
