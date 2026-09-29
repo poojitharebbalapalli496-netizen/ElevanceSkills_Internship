@@ -1,0 +1,6 @@
+streamlit==1.61.1
+langdetect==1.0.9
+ctranslate2==4.8.2
+tokenizers
+huggingface_hub
+pytest==9.1.1
